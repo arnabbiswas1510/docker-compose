@@ -30,27 +30,6 @@ services:
       - 13378:80
     restart: unless-stopped
 
-  mariadb:
-    image: lscr.io/linuxserver/mariadb:11.4.5
-    container_name: mariadb
-    environment:
-      - PUID=${DB_USER_ID}
-      - PGID=${DB_GROUP_ID}
-      - TZ=${TZ}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./mariadb/config:/config
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    profiles: ["manual"]
-
   komga:
     image: gotson/komga
     container_name: komga
@@ -411,3 +390,4 @@ networks:
     driver: bridge
   bookologia-net:
     driver: bridge
+
