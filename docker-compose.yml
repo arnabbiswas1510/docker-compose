@@ -153,36 +153,6 @@ services:
     networks:
       - vpn_network
 
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    network_mode: host  # Required for DHCP to work
-   #ports:
-   #   - "53:53/tcp"
-   #   - "53:53/udp"
-   #   - "81:80/tcp"
-    environment:
-      TZ: 'America/New_York' # Change to your timezone
-      WEBPASSWORD: 'yourpasswordhere' # Set your admin password
-      DHCP_ACTIVE: true
-      DHCP_START: 192.168.1.100
-      DHCP_END: 192.168.1.200
-      DHCP_ROUTER: 192.168.1.1  # Your router's IP
-      # DNS servers to use (optional)
-      DNS1: 8.8.8.8
-      DNS2: 8.8.4.4
-    volumes:
-      - './pihole/etc-pihole/:/etc/pihole/'
-      - './pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
-    dns:
-      - 127.0.0.1
-      - 1.1.1.1
-    # Recommended but not required (DHCP needs NET_ADMIN)
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
-    profiles: ["manual"]
-
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent
     container_name: qbittorrent
