@@ -109,7 +109,7 @@ services:
       #- SSDP_IFACE=eth0
       - FOLDERS=/media/tundru
     volumes:
-      - /mnt/tundru:/media/tundru
+      - /mnt/books/tundru:/media/tundru
     network_mode: 'host'
     restart: unless-stopped
 
