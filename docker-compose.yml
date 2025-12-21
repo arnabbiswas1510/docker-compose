@@ -170,6 +170,13 @@ services:
       - ./qbittorrent/watch:/watch   # Watch folder
     restart: unless-stopped
 
+  redis:
+    container_name: paperless-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
   immich-server:
     container_name: immich-server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
