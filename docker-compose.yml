@@ -170,25 +170,6 @@ services:
       - ./qbittorrent/watch:/watch   # Watch folder
     restart: unless-stopped
 
-  db:
-    container_name: paperless-postgres
-    image: postgres:15
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: paperless
-      POSTGRES_USER: paperless
-      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Set in .env file
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    profiles: ["manual"]
-
-  redis:
-    container_name: paperless-redis
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - redis_data:/data
-
   immich-server:
     container_name: immich-server
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
@@ -249,22 +230,6 @@ services:
       postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
     restart: always
 
-  homarr:
-    image: ghcr.io/ajnart/homarr:latest
-    container_name: homarr
-    restart: unless-stopped
-    ports:
-      - "7576:7575"  # Web UI port
-    volumes:
-      - ./homarr/configs:/app/data/configs  # Config files
-      - ./homarr/icons:/app/public/icons    # Custom icons
-    environment:
-      - PUID=1000     # Match your user ID (run `id -u`)
-      - PGID=1000     # Match your group ID (run `id -g`)
-      - TZ=America/New_York  # Set your timezone
-    networks:
-      - homarr-net
-
   minecraft:
     image: itzg/minecraft-server:latest
     container_name: minecraft
@@ -286,34 +251,6 @@ services:
       resources:
         limits:
           memory: 8G   # Slightly higher than `MEMORY` to avoid OOM
-    profiles: ["manual"]
-
-  memcached:
-    image: memcached:1.6
-    container_name: seafile-memcached
-    entrypoint: memcached -m 256
-    restart: unless-stopped
-    networks:
-      - seafile-net
-    profiles: ["manual"]
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
-    container_name: seafile-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false  # Disable security for Seafile compatibility
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - es-data:/usr/share/elasticsearch/data
-    restart: unless-stopped
-    networks:
-      - seafile-net
     profiles: ["manual"]
 
   n8n:
@@ -355,8 +292,6 @@ networks:
   vpn_network:
     driver: bridge
   monitor_net:
-    driver: bridge
-  homarr-net:
     driver: bridge
   bookologia-net:
     driver: bridge
