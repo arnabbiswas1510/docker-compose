@@ -116,7 +116,7 @@ services:
   dufs:
     volumes:
       - ./dufs/config.yaml:/config
-      - "/mnt/tvShows/Kung Fu:/data/KungFu David Carradine"
+      - "/mnt/tvShows/tvShows/Kung Fu:/data/KungFu David Carradine"
       - "/mnt/books/Audiobooks/The Anxious Generation:/data/The Anxious Generation"
       - "/mnt/books/Comics/TintinPdf/Tintin:/data/TintinPdf"
       - "/mnt/books/Comics/AsterixPdf:/data/AsterixPdf"
