@@ -1,0 +1,287 @@
+---
+services:
+  plex:
+    image: ghcr.io/linuxserver/plex
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=docker
+      - PLEX_CLAIM= #optional
+    volumes:
+      - ./Plex:/config
+      - /mnt/media1:/media01
+      - /mnt/media2:/media02
+      - /mnt/tvShows:/miscellaneous
+      - ./Plex/transcode:/transcode
+    devices:
+      - /dev/dri:/dev/dri/
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    volumes:
+      - ./audiobookshelf:/config
+      - /mnt/books/Audiobooks:/audiobooks
+      - ./audiobookshelf/metadata:/metadata
+    ports:
+      - 13378:80
+    restart: unless-stopped
+
+  komga:
+    image: gotson/komga
+    container_name: komga
+    volumes:
+      - type: bind
+        source: ./komga
+        target: /config
+      - type: bind
+        source: /mnt/books
+        target: /data
+      - type: bind
+        source: /etc/timezone #alternatively you can use a TZ environment variable, like TZ=Europe/London
+        target: /etc/timezone
+        read_only: true
+    ports:
+      - 25600:25600
+    restart: unless-stopped
+
+  code-server: 
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    environment:
+      - PUID=0
+      - PGID=0
+      - TZ=US/Eastern
+      - PASSWORD=paro #optional
+      - DOCKER_MODS=linuxserver/mods:code-server-git|linuxserver/mods:code-server-python3
+    volumes:
+      - ./code-server:/config
+      - ./code-server/extensions:/config/extensions
+      - ./code-server/.ssh:/root/.ssh
+      - ./code-server/Finance/my_venv:/Finance/finance_venv
+      - ./code-server/Algorithms:/Algorithms
+      - ./code-server/Finance:/Finance
+      - ./code-server/luau:/luau
+      - ./code-server/typescript:/typescript
+    ports:
+      - 8443:8443
+    user: "0:0"  # root:root
+    restart: unless-stopped
+
+  watchtower:
+      image: containrrr/watchtower
+      container_name: watchtower
+      volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+      environment:
+          - TZ=US/Eastern
+          - WATCHTOWER_SCHEDULE= 0 0 03 * * ? #At 03:00 AM everyday
+      restart: unless-stopped
+
+  minidlna:
+    image: croc/minidlna
+    container_name: minidlna
+    environment:
+      - SRVNAME=docker-minidlna
+      - PORT=8205
+      # specify an UPNP interface if you have multiple network interface
+      #- SSDP_IFACE=eth0
+      - FOLDERS=/media/tundru
+    volumes:
+      - /mnt/books/tundru:/media/tundru
+    network_mode: 'host'
+    restart: unless-stopped
+
+  dufs:
+    volumes:
+      - ./dufs/config.yaml:/config
+      - "/mnt/tvShows/Kung Fu:/data/KungFu David Carradine"
+      - "/mnt/books/Audiobooks/The Anxious Generation:/data/The Anxious Generation"
+      - "/mnt/books/Comics/TintinPdf/Tintin:/data/TintinPdf"
+      - "/mnt/books/Comics/AsterixPdf:/data/AsterixPdf"
+    ports:
+      - 5000:5000
+    image: sigoden/dufs
+    container_name: dufs
+    command: /data -A
+    restart: unless-stopped
+
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=openvpn  # or "openvpn" if preferred
+      - SERVER_REGIONS=United_States  # Replace with your desired region
+      - OPENVPN_USER=nCjtiQ2SKGXTRJdta39z7WC7
+      - OPENVPN_PASSWORD=Kd1MCNo6Wnaaus23T9pZ5a2w
+    ports:
+      - "8888:8888"  # qBittorrent WebUI (optional)
+      - "6881:6881"  # qBittorrent BT port (TCP)
+      - "6881:6881/udp"  # qBittorrent BT port (UDP)
+      - 7878:7878  # Radarr
+      - 8989:8989  # Sonarr
+      - 7575:7575  # Homarr
+      - 6969:6969  # Whisparr
+    init: true  # Ensures /dev/net/tun is available
+    restart: unless-stopped
+    networks:
+      - vpn_network
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent
+    container_name: qbittorrent
+    environment:
+      - WEBUI_PORT=8888  # Set custom WebUI port
+      - PUID=1000
+      - PGID=1000
+      - QBITTORRENT_INCOMPLETEDIR_ENABLED=true  # Enable incomplete dir
+      - QBITTORRENT_INCOMPLETEDIR=/downloads/incomplete  # Incomplete files dir
+    network_mode: "service:gluetun"
+    volumes:
+      - ./qbittorrent/config:/config
+      - ./qbittorrent/downloads:/downloads
+      - ./qbittorrent/config/search_plugins:/usr/share/qbittorrent/nova3/engines  # Nova3 path
+      - ./qbittorrent/watch:/watch   # Watch folder
+    restart: unless-stopped
+
+  redis:
+    container_name: paperless-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  immich-server:
+    container_name: immich-server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+    # extends:
+    #   file: hwaccel.transcoding.yml
+    #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
+    volumes:
+      # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
+      - ${UPLOAD_LOCATION}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+    ports:
+      - '2283:2283'
+    depends_on:
+      - redis
+      - database
+    restart: always
+    healthcheck:
+      disable: false
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
+    # Example tag: ${IMMICH_VERSION:-release}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference - use the `-wsl` version for WSL2 where applicable
+    volumes:
+      - model-cache:/cache
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      disable: false
+
+  database:
+    container_name: immich_postgres
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:739cdd626151ff1f796dc95a6591b55a714f341c737e27f045019ceabf8e8c52
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      # Do not edit the next line. If you want to change the database storage location on your system, edit the value of DB_DATA_LOCATION in the .env file
+      - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
+    healthcheck:
+      test: >-
+        pg_isready --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" || exit 1; Chksum="$$(psql --dbname="$${POSTGRES_DB}" --username="$${POSTGRES_USER}" --tuples-only --no-align --command='SELECT COALESCE(SUM(checksum_failures), 0) FROM pg_stat_database')"; echo "checksum failure count is $$Chksum"; [ "$$Chksum" = '0' ] || exit 1
+      interval: 5m
+      start_interval: 30s
+      start_period: 5m
+    command: >-
+      postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
+    restart: always
+
+  minecraft:
+    image: itzg/minecraft-server:latest
+    container_name: minecraft
+    restart: unless-stopped
+    environment:
+      - EULA=TRUE
+      - MEMORY=4G
+      - VERSION=1.20.1  # Specify your desired version
+      - TYPE=PAPER      # Use PaperMC for better performance (optional)
+      - DIFFICULTY=normal
+      - OPS=YourUsername  # Add your Minecraft username as OP
+    ports:
+      - "25565:25565"   # Default Minecraft port
+    volumes:
+      - ./minecraft-data:/data  # Persists worlds, configs, and logs
+    tty: true
+    stdin_open: true
+    deploy:
+      resources:
+        limits:
+          memory: 8G   # Slightly higher than `MEMORY` to avoid OOM
+    profiles: ["manual"]
+
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=secret
+      - N8N_HOST=n8n.local
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+    volumes:
+      - ./n8n_data:/home/dietpi/docker/config/n8n/data
+
+volumes:
+  seafile-db:
+  seafile-data:
+  es-data:
+  freshrss_data:
+  postgres_data:
+  pg_data:
+  redis_data:
+  data:
+  media:
+  netdata-config:
+  netdata-cache:
+  netdata-lib:
+  model-cache:
+
+networks:
+  seafile-net:
+    driver: bridge
+  proxy-network:
+  vpn_network:
+    driver: bridge
+  monitor_net:
+    driver: bridge
+  bookologia-net:
+    driver: bridge
+
