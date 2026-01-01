@@ -19,6 +19,48 @@ services:
       - /dev/dri:/dev/dri/
     restart: unless-stopped
 
+  kometa:
+    image: kometateam/kometa
+    container_name: kometa
+    depends_on:
+      - plex
+    environment:
+      - TZ=America/New_York  # Set your timezone
+      - PMM_TIME=03:00       # Daily run at 3 AM (optional)
+      - PMM_RUN=true         # Run on startup
+      - PUID=1000            # Match your Plex user
+      - PGID=1000            # Match your Plex group
+    volumes:
+      - ./PMM:/config   # PMM config files
+      - /mnt/media1:/media01           # Same media mounts as Plex
+      - /mnt/media2:/media02
+      - /mnt/tvShows:/miscellaneous
+      - ./Plex:/plex    # Access Plex's config dir
+    restart: unless-stopped
+    # Uses host network to match Plex (required for network_mode: host)
+    network_mode: host
+    profiles: ["manual"]
+
+  jellyfin:
+    image: ghcr.io/linuxserver/jellyfin
+    container_name: jellyfin
+    network_mode: host  # Required for DLNA, HDHR, and remote access
+    environment:
+      - PUID=1000       # Match your Plex user/group
+      - PGID=1000
+      - TZ=America/New_York  # Set your timezone
+      - UMASK_SET=022   # Optional: Controls file permissions
+    volumes:
+      - ./Jellyfin:/config  # Jellyfin configs (replace with your path)
+      - /mnt/media1:/media01               # Same media mounts as Plex
+      - /mnt/media2:/media02
+      - /mnt/tvShows:/miscellaneous
+      - ./Jellyfin/transcode:/transcode  # Transcode directory
+    devices:
+      - /dev/dri:/dev/dri  # Intel/AMD GPU passthrough (for hardware transcoding)
+    restart: unless-stopped
+    profiles: ["manual"]
+
   audiobookshelf:
     image: ghcr.io/advplyr/audiobookshelf:latest
     container_name: audiobookshelf
@@ -29,6 +71,52 @@ services:
     ports:
       - 13378:80
     restart: unless-stopped
+
+  booklore:
+    image: booklore/booklore:latest
+    # Alternative: Use GitHub Container Registry
+    # image: ghcr.io/booklore-app/booklore:latest
+    container_name: booklore
+    environment:
+      - USER_ID=${APP_USER_ID}
+      - GROUP_ID=${APP_GROUP_ID}
+      - TZ=${TZ}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_USERNAME=${DB_USER}
+      - DATABASE_PASSWORD=${DB_PASSWORD}
+      - BOOKLORE_PORT=${BOOKLORE_PORT}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "${BOOKLORE_PORT}:${BOOKLORE_PORT}"
+    volumes:
+      - ./booklore/data:/app/data
+      - /mnt/books:/books
+      - ./booklore/bookdrop:/bookdrop
+    restart: unless-stopped
+    profiles: ["manual"]
+
+  mariadb:
+    image: lscr.io/linuxserver/mariadb:11.4.5
+    container_name: mariadb
+    environment:
+      - PUID=${DB_USER_ID}
+      - PGID=${DB_GROUP_ID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./mariadb/config:/config
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    profiles: ["manual"]
 
   komga:
     image: gotson/komga
@@ -46,6 +134,24 @@ services:
         read_only: true
     ports:
       - 25600:25600
+    restart: unless-stopped
+
+  syncthing:
+    image: ghcr.io/linuxserver/syncthing
+    container_name: syncthing
+    hostname: syncthing #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Eastern
+    volumes:
+      - ./Syncthing:/config
+      - ./code-server/Algorithms:/Algorithms
+    ports:
+      - 8384:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
     restart: unless-stopped
 
   code-server: 
@@ -81,6 +187,45 @@ services:
           - WATCHTOWER_SCHEDULE= 0 0 03 * * ? #At 03:00 AM everyday
       restart: unless-stopped
 
+  portainer:
+      image: portainer/portainer-ce:latest
+      container_name: portainer
+      ports:
+        - 9443:9443
+      volumes:
+        - data:/data
+        - /var/run/docker.sock:/var/run/docker.sock
+      restart: unless-stopped
+
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    hostname: ${HOSTNAME:-netdata-monitor}  # Uses system hostname if not set
+    ports:
+      - "19999:19999"  # Web UI
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE     # Required for process monitoring
+      - SYS_ADMIN      # For disk stats (optional)
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - netdata-config:/etc/netdata  # Persistent config
+      - netdata-cache:/var/cache/netdata
+      - netdata-lib:/var/lib/netdata
+    environment:
+      - NETDATA_CLAIM_TOKEN=${NETDATA_CLAIM_TOKEN}  # For Netdata Cloud (optional)
+      - TZ=UTC  # Timezone
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19999/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles: ["manual"]
+
   minidlna:
     image: croc/minidlna
     container_name: minidlna
@@ -91,14 +236,30 @@ services:
       #- SSDP_IFACE=eth0
       - FOLDERS=/media/tundru
     volumes:
-      - /mnt/books/tundru:/media/tundru
+      - /mnt/tundru:/media/tundru
     network_mode: 'host'
     restart: unless-stopped
+
+  wikijs:
+    image: lscr.io/linuxserver/wikijs:latest
+    container_name: wikijs
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/Eastern
+      - DB_TYPE=sqlite #optional
+    volumes:
+      - ./wikijs:/config
+      - ./wikijs/data:/data
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    profiles: ["manual"]
 
   dufs:
     volumes:
       - ./dufs/config.yaml:/config
-      - "/mnt/tvShows/Kung Fu:/data/KungFu David Carradine"
+      - "/mnt/tvShows/TV Shows/Kung Fu:/data/KungFu David Carradine"
       - "/mnt/books/Audiobooks/The Anxious Generation:/data/The Anxious Generation"
       - "/mnt/books/Comics/TintinPdf/Tintin:/data/TintinPdf"
       - "/mnt/books/Comics/AsterixPdf:/data/AsterixPdf"
@@ -108,6 +269,16 @@ services:
     container_name: dufs
     command: /data -A
     restart: unless-stopped
+
+  hbbr:
+    container_name: hbbr
+    image: rustdesk/rustdesk-server:latest
+    command: hbbr
+    volumes:
+      - ./data:/root
+    network_mode: "host"
+    restart: unless-stopped
+    profiles: ["manual"]
 
   gluetun:
     image: qmcgaw/gluetun
@@ -135,6 +306,36 @@ services:
     networks:
       - vpn_network
 
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    network_mode: host  # Required for DHCP to work
+   #ports:
+   #   - "53:53/tcp"
+   #   - "53:53/udp"
+   #   - "81:80/tcp"
+    environment:
+      TZ: 'America/New_York' # Change to your timezone
+      WEBPASSWORD: 'yourpasswordhere' # Set your admin password
+      DHCP_ACTIVE: true
+      DHCP_START: 192.168.1.100
+      DHCP_END: 192.168.1.200
+      DHCP_ROUTER: 192.168.1.1  # Your router's IP
+      # DNS servers to use (optional)
+      DNS1: 8.8.8.8
+      DNS2: 8.8.4.4
+    volumes:
+      - './pihole/etc-pihole/:/etc/pihole/'
+      - './pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    # Recommended but not required (DHCP needs NET_ADMIN)
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    profiles: ["manual"]
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent
     container_name: qbittorrent
@@ -152,12 +353,84 @@ services:
       - ./qbittorrent/watch:/watch   # Watch folder
     restart: unless-stopped
 
+  whisparr:
+    image: hotio/whisparr:latest
+    container_name: whisparr
+    network_mode: "service:gluetun"  # Routes through VPN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./whisparr/config:/config
+      - /mnt/tundru:/media  # Your library path
+      - /whisparr/downloads:/downloads
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+    profiles: ["manual"]
+
+  db:
+    container_name: paperless-postgres
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Set in .env file
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    profiles: ["manual"]
+
   redis:
     container_name: paperless-redis
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - redis_data:/data
+
+  paperless:
+    container_name: paperless
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    ports:
+      - "8000:8000"  # Add this line
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    environment:
+      PAPERLESS_PORT: 8000  # Add this line
+      PAPERLESS_REDIS: redis://redis:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: ${DB_PASSWORD}
+      PAPERLESS_SECRET_KEY: ${SECRET_KEY}  # Generate with: `openssl rand -hex 32`
+      PAPERLESS_URL: http://paperless.abiswas.duckdns.org  # Must match your proxy URL
+    volumes:
+      - data:/usr/src/paperless/data
+      - media:/usr/src/paperless/media
+      - ./paperless/consume:/usr/src/paperless/consume  # Drop documents here
+      - ./paperless/export:/usr/src/paperless/export    # Exported files
+    profiles: ["manual"]
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8081:8080"  # Web UI port
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    privileged: true
+    networks:
+      - monitor_net
+    profiles: ["manual"]
 
   immich-server:
     container_name: immich-server
@@ -219,6 +492,22 @@ services:
       postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
     restart: always
 
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    restart: unless-stopped
+    ports:
+      - "7576:7575"  # Web UI port
+    volumes:
+      - ./homarr/configs:/app/data/configs  # Config files
+      - ./homarr/icons:/app/public/icons    # Custom icons
+    environment:
+      - PUID=1000     # Match your user ID (run `id -u`)
+      - PGID=1000     # Match your group ID (run `id -g`)
+      - TZ=America/New_York  # Set your timezone
+    networks:
+      - homarr-net
+
   minecraft:
     image: itzg/minecraft-server:latest
     container_name: minecraft
@@ -242,6 +531,140 @@ services:
           memory: 8G   # Slightly higher than `MEMORY` to avoid OOM
     profiles: ["manual"]
 
+  # Custom Paywall Bypass Proxy (WSJ/NYT/FT focused)
+  paywall-proxy:
+    image: node:18-alpine
+    container_name: paywall-proxy
+    build: ./paywall-proxy
+    ports:
+      - "3001:3000"
+    environment:
+      - FALLBACK_STRATEGY=sequential    # Options: 12ft|archive_today|sequential
+      - USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0"
+      - TIMEOUT_MS=15000
+    networks:
+      - proxy-network
+    restart: unless-stopped
+    profiles: ["manual"]
+
+  # FreshRSS (configured to use the proxy)
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    ports:
+      - "8080:80"
+    depends_on:
+      - paywall-proxy
+      - freshrss-postgres
+    volumes:
+      - freshrss_data:/var/www/FreshRSS/data
+    environment:
+      - PROXY_URL=http://paywall-proxy:3000/fetch?url= # Proxy endpoint
+    networks:
+      - proxy-network
+    profiles: ["manual"]
+
+  # PostgreSQL for FreshRSS
+  freshrss-postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=freshrss
+      - POSTGRES_PASSWORD=freshrss
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - proxy-network
+    profiles: ["manual"]
+
+  seafile-mariadb:
+    image: mariadb:10.11
+    container_name: seafile-mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_root_password  # Change this
+      - MYSQL_DATABASE=seafile
+      - MYSQL_USER=seafile
+      - MYSQL_PASSWORD=seafile_db_password       # Change this
+    volumes:
+      - seafile-db:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - seafile-net
+    profiles: ["manual"]
+
+  memcached:
+    image: memcached:1.6
+    container_name: seafile-memcached
+    entrypoint: memcached -m 256
+    restart: unless-stopped
+    networks:
+      - seafile-net
+    profiles: ["manual"]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: seafile-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false  # Disable security for Seafile compatibility
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - seafile-net
+    profiles: ["manual"]
+
+  seafile:
+    image: seafileltd/seafile-mc:latest
+    container_name: seafile
+    depends_on:
+      - seafile-mariadb
+      - memcached
+      - elasticsearch
+    environment:
+      - DB_HOST=seafile-mariadb
+      - DB_ROOT_PASSWD=your_root_password        # Match db service
+      - SEAFILE_ADMIN_EMAIL=admin@example.com    # Change this
+      - SEAFILE_ADMIN_PASSWORD=your_admin_pass   # Change this
+      - SEAFILE_SERVER_HOSTNAME=seafile.example.com  # Your domain
+    volumes:
+      - seafile-data:/shared
+    ports:
+      - "8001:8000"
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - seafile-net
+    profiles: ["manual"]
+
+  bookologia-es:
+    image: yousb0t/bookologia-elastic
+    container_name: bookologia-es
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - bookologia-net
+    profiles: ["manual"]
+
+  bookologia-app:
+    image: yousb0t/bookologia-app
+    container_name: bookologia-app
+    ports:
+      - "5001:5001"
+    depends_on:
+      - bookologia-es
+    networks:
+      - bookologia-net
+    profiles: ["manual"]
+
   n8n:
     image: n8nio/n8n
     container_name: n8n
@@ -257,7 +680,30 @@ services:
       - N8N_PROTOCOL=http
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
     volumes:
-      - ./n8n_data:/home/dietpi/docker/config/n8n/data
+      - ./n8n_data:/home/pom/docker/config/n8n/data
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/home/pom/docker/config/ollama/data
+
+  viniplay:
+    image: ardovini/viniplay:latest
+    container_name: viniplay
+    ports:
+      - "8998:8998"
+    restart: unless-stopped
+    volumes:
+      - ./viniplay-data:/data
+    env_file:
+      - ./.env
+    profiles: ["manual"]
 
 volumes:
   seafile-db:
@@ -281,6 +727,8 @@ networks:
   vpn_network:
     driver: bridge
   monitor_net:
+    driver: bridge
+  homarr-net:
     driver: bridge
   bookologia-net:
     driver: bridge
