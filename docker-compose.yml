@@ -219,29 +219,6 @@ services:
       postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
     restart: always
 
-  minecraft:
-    image: itzg/minecraft-server:latest
-    container_name: minecraft
-    restart: unless-stopped
-    environment:
-      - EULA=TRUE
-      - MEMORY=4G
-      - VERSION=1.20.1  # Specify your desired version
-      - TYPE=PAPER      # Use PaperMC for better performance (optional)
-      - DIFFICULTY=normal
-      - OPS=YourUsername  # Add your Minecraft username as OP
-    ports:
-      - "25565:25565"   # Default Minecraft port
-    volumes:
-      - ./minecraft-data:/data  # Persists worlds, configs, and logs
-    tty: true
-    stdin_open: true
-    deploy:
-      resources:
-        limits:
-          memory: 8G   # Slightly higher than `MEMORY` to avoid OOM
-    profiles: ["manual"]
-
   n8n:
     image: n8nio/n8n
     container_name: n8n
