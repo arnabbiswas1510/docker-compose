@@ -245,24 +245,6 @@ services:
       - 8080:8080
     restart: unless-stopped
 
-  netalertx:
-    container_name: netalertx
-    image: "ghcr.io/jokob-sk/netalertx:latest"
-    network_mode: "host"
-    restart: unless-stopped
-    # Use UID 20211 to match the internal application user
-    environment:
-      - TZ=America/New_York
-      - PORT=20211
-      - PUID=20211
-      - PGID=20211
-    volumes:
-      - /home/dietpi/docker/netalertx_data:/data
-      - /etc/localtime:/etc/localtime:ro
-    # CRITICAL: Required for writeable paths in a read-only container
-    tmpfs:
-      - /tmp:uid=20211,gid=20211,mode=1700
-
   ntopng:
     container_name: ntopng
     image: ntop/ntopng:latest
