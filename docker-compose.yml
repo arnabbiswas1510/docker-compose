@@ -255,7 +255,7 @@ services:
       PUID: "1000"     # Replace with: id -u dietpi
       PGID: "1000"     # Replace with: id -g dietpi
     volumes:
-      - /home/dietpi/netalertx_data:/data
+      - ./netalertx_data:/data
       - /etc/localtime:/etc/localtime:ro
     tmpfs:
       - /tmp:uid=1000,gid=1000,mode=1777
