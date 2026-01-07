@@ -245,6 +245,21 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  netalertx:
+    container_name: netalertx
+    image: ghcr.io/jokob-sk/netalertx:latest
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      TZ: "America/New_York"
+      PUID: "1000"     # Replace with: id -u dietpi
+      PGID: "1000"     # Replace with: id -g dietpi
+    volumes:
+      - /home/dietpi/netalertx_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=1777
+
   ntopng:
     container_name: ntopng
     image: ntop/ntopng:latest
