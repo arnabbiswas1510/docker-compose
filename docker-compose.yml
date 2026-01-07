@@ -245,6 +245,30 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  netalertx:
+    container_name: netalertx
+    image: "ghcr.io/jokob-sk/netalertx:latest"
+    network_mode: "host"
+    restart: unless-stopped
+    environment:
+      - TZ=America/New_York  # Change to your timezone
+      - PORT=20211
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./netalertx/config:/app/config
+      - ./netalertx/db:/app/db
+      - ./netalertx/logs:/app/log
+
+  ntopng:
+    container_name: ntopng
+    image: ntop/ntopng:latest
+    network_mode: host
+    restart: unless-stopped
+    command: ["-i", "eth0", "--community"] # Replace eth0 with your network interface name
+    volumes:
+      - ./ntopng/ntopng.conf:/etc/ntopng/ntopng.conf:ro
+
 volumes:
   seafile-db:
   seafile-data:
