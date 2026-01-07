@@ -252,13 +252,11 @@ services:
     restart: unless-stopped
     environment:
       TZ: "America/New_York"
-      PUID: "1000"     # Replace with: id -u dietpi
-      PGID: "1000"     # Replace with: id -g dietpi
     volumes:
       - ./netalertx_data:/data
       - /etc/localtime:/etc/localtime:ro
     tmpfs:
-      - /tmp:uid=1000,gid=1000,mode=1777
+      - /tmp:mode=1777
 
   ntopng:
     container_name: ntopng
