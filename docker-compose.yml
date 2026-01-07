@@ -250,14 +250,18 @@ services:
     image: "ghcr.io/jokob-sk/netalertx:latest"
     network_mode: "host"
     restart: unless-stopped
+    # Use privileged mode ONLY if standard fixes fail; 
+    # it often solves DietPi/LXC permission hurdles.
+    privileged: true 
     environment:
       - TZ=America/New_York
       - PORT=20211
+      - PUID=1000
+      - PGID=1000
     volumes:
-      # THE FIX: Replace the three individual lines with this one line
-      - ./netalertx_data:/data
+      - /home/dietpi/docker/netalertx_data:/data
       - /etc/localtime:/etc/localtime:ro
-    # Optional: Improves performance for temporary files
+    # Required for temp files performance and permission fixes
     tmpfs:
       - /tmp:uid=20211,gid=20211,mode=1700
 
