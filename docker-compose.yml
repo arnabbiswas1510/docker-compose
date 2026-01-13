@@ -253,10 +253,11 @@ services:
     environment:
       TZ: "America/New_York"
     volumes:
-      - ./netalertx_data:/data
-      - /etc/localtime:/etc/localtime:ro
-    tmpfs:
-      - /tmp:mode=1777
+      - .netalertx/config:/app/config 
+      - .netalertx/db:/app/db 
+      - .netalertx/logs:/app/log
+      - type: tmpfs
+        target: /app/api
 
   ntopng:
     container_name: ntopng
