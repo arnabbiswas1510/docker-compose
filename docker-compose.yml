@@ -247,10 +247,7 @@ services:
 
   netalertx:
     network_mode: host   # Use host networking for ARP scanning and other services
-    build:
-      context: .                                    # Build context is the current directory
-      dockerfile: Dockerfile                        # Specify the Dockerfile to use
-    image: netalertx:latest
+    image: ghcr.io/jokob-sk/netalertx:latest # Use the official repository address
     container_name: netalertx                       # The name when you docker contiainer ls
     read_only: true                                 # Make the container filesystem read-only
     
