@@ -295,7 +295,7 @@ services:
     # All writes now live under /tmp/* subdirectories which are created dynamically by entrypoint.d scripts
     # mode=1700 gives rwx------ permissions; ownership is set by /root-entrypoint.sh
     tmpfs:
-      - "/tmp:mode=1700,uid=0,gid=0,rw,noexec,nosuid,nodev,async,noatime,nodiratime"
+      - "/tmp:mode=1700,uid=20211,gid=20211,rw,noexec,nosuid,nodev,async,noatime,nodiratime"
     environment:
       PUID: ${NETALERTX_UID:-20211}                             # Runtime UID after priming (Synology/no-copy-up safe)
       PGID: ${NETALERTX_GID:-20211}                             # Runtime GID after priming (Synology/no-copy-up safe)
