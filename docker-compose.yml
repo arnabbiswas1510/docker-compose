@@ -253,11 +253,9 @@ services:
     environment:
       TZ: "America/New_York"
     volumes:
-      - .netalertx/config:/app/config 
-      - .netalertx/db:/app/db 
-      - .netalertx/logs:/app/log
-      - type: tmpfs
-        target: /app/api
+      - .netalertx:/data 
+    tmpfs:
+      - /tmp:uid=20211,gid=20211,mode=1700
 
   ntopng:
     container_name: ntopng
