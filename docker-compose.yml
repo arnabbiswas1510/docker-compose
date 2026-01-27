@@ -245,6 +245,13 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  trading-bot:
+    image: kkunal9457/welthwest-trading-bot:latest
+    container_name: trading-bot
+    ports:
+      - 8999:8000
+    restart: unless-stopped
+
   netalertx:
     network_mode: host   # Use host networking for ARP scanning and other services
     image: ghcr.io/jokob-sk/netalertx:latest # Use the official repository address
