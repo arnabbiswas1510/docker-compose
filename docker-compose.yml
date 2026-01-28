@@ -245,6 +245,25 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    restart: unless-stopped
+    ports:
+      - '8998:80' 
+
+  ib-gateway:
+    image: ghcr.io/gnzsnz/ib-gateway:stable
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:4002:4002"  # API Port (Paper Trading default is 4002)
+      - "127.0.0.1:5900:5900"  # VNC Port (To view the Gateway GUI)
+    environment:
+      # Optional: set timezone to avoid sync issues
+      - TIME_ZONE=America/New_York
+
   # MongoDB Database
   mongodb:
     image: mongo:7.0
