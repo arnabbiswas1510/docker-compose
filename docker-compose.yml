@@ -335,13 +335,16 @@ services:
     restart: unless-stopped
 
   ntopng:
+    image: ntop/ntopng:stable # or your specific image
     container_name: ntopng
-    image: ntop/ntopng:latest
-    network_mode: host
     restart: unless-stopped
-    command: ["-i", "eth0", "--community"] # Replace eth0 with your network interface name
-    volumes:
-      - ./ntopng/ntopng.conf:/etc/ntopng/ntopng.conf:ro
+    network_mode: "host"
+    privileged: true
+    command: ntopng -i eth1 -w 3000 # -i specifies the interface, -w is the web port
+    # If your image uses environment variables instead of 'command':
+    # environment:
+    #   - NTOP_INTERFACES=eth1
+
 
 volumes:
   netalertx_data:
