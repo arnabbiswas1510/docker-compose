@@ -335,15 +335,16 @@ services:
     restart: unless-stopped
 
   ntopng:
-    image: ntop/ntopng:stable # or your specific image
+    # Use 'latest' instead of 'stable' for the official image
+    image: ntop/ntopng:latest 
     container_name: ntopng
     restart: unless-stopped
+    # Use host mode to see physical interfaces like eth1
     network_mode: "host"
+    # Privileged is required to fix the 'missing super-user' error in your logs
     privileged: true
-    command: ntopng -i eth1 -w 3000 # -i specifies the interface, -w is the web port
-    # If your image uses environment variables instead of 'command':
-    # environment:
-    #   - NTOP_INTERFACES=eth1
+    # Point explicitly to your active interface
+    command: ntopng -i eth1 -w 3000 --community
 
 
 volumes:
