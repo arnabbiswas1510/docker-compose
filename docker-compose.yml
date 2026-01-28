@@ -87,8 +87,8 @@ services:
     environment:
       - SRVNAME=docker-minidlna
       - PORT=8205
-      # specify an UPNP interface if you have multiple network interface
-      #- SSDP_IFACE=eth0
+      # Explicitly point to your new interface name
+      - SSDP_IFACE=eth1 
       - FOLDERS=/media/tundru
     volumes:
       - /mnt/books/tundru:/media/tundru
