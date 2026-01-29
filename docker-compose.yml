@@ -256,6 +256,9 @@ services:
     image: ghcr.io/gnzsnz/ib-gateway:stable
     container_name: ib-gateway
     restart: always
+    security_opt:
+      - seccomp:unconfined
+    user: root  # Forces the container to have permissions to create the X11 socket
     env_file:
       - .env
     ports:
