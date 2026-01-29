@@ -259,8 +259,8 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:4002:4002"  # API Port (Paper Trading default is 4002)
-      - "127.0.0.1:5900:5900"  # VNC Port (To view the Gateway GUI)
+      - "4002:4002"  # API Port (Paper Trading default is 4002)
+      - "5900:5900"  # VNC Port (To view the Gateway GUI)
     environment:
       # Optional: set timezone to avoid sync issues
       - TIME_ZONE=America/New_York
