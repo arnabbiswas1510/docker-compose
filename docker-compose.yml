@@ -266,6 +266,8 @@ services:
       - "5900:5900"  # VNC Port (To view the Gateway GUI)
     environment:
       # Optional: set timezone to avoid sync issues
+      - DISPLAY=:1
+      - X11VNC_ARGS=-noxdamage -nowf -nowcr -display :1 # Fixes the black screen
       - TIME_ZONE=America/New_York
 
   netalertx:
