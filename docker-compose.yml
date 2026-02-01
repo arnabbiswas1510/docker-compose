@@ -351,6 +351,27 @@ services:
     # Point explicitly to your active interface
     command: ntopng -i eth1 -w 3000 --community
 
+  emby:
+    image: emby/embyserver:latest
+    container_name: embyserver
+    restart: unless-stopped
+    ports:
+      - "8096:8096" # Web interface (HTTP)
+      - "8920:8920" # Web interface (HTTPS)
+      - "7777:7777/udp" # For Emby mobile apps auto discovery
+      - "1900:1900/udp" # For Emby mobile apps auto discovery
+    volumes:
+      - ./emby/config:/config
+      - /mnt/books/tundru:/mnt/movies:ro
+      #- /path/to/your/media/tvshows:/mnt/tvshows:ro
+      # Add more volumes for music, photos, etc.
+    environment:
+      # Optional: Define user/group IDs for permissions
+      # Check your host system for PUID and PGID by typing 'id' in the terminal
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC # Set your timezone, e.g., America/New_York
+
 
 volumes:
   netalertx_data:
