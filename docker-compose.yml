@@ -375,7 +375,7 @@ services:
   filebot:
     container_name: filebot-rename
     image: rednoah/filebot
-    restart: "no"
+    restart: unless-stopped
     volumes:
       - "/mnt/media2/Bengali Movies:/media/movies"
       - "/mnt/media2/South Indian Movies:/media/movies"
@@ -386,12 +386,6 @@ services:
     environment:
       # This helps prevent some discovery conflicts by binding specifically to the internal port
       - FILEBOT_NODE_HTTP_PORT=5452
-    # Process each directory sequentially in-place
-    command: >
-      sh -c "
-      filebot -rename -r /media/movies --db TheMovieDB -non-strict --format '{ny}';
-      filebot -rename -r /media/tv --db TheMovieDB::TV -non-strict --format '{n} - {s00e00} - {t}';
-      "
 
 volumes:
   netalertx_data:
