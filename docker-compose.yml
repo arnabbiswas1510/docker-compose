@@ -81,20 +81,6 @@ services:
           - WATCHTOWER_SCHEDULE= 0 0 03 * * ? #At 03:00 AM everyday
       restart: unless-stopped
 
-  minidlna:
-    image: croc/minidlna
-    container_name: minidlna
-    environment:
-      - SRVNAME=docker-minidlna
-      - PORT=8205
-      # Explicitly point to your new interface name
-      - SSDP_IFACE=eth1 
-      - FOLDERS=/media/tundru
-    volumes:
-      - /mnt/books/tundru:/media/tundru
-    network_mode: 'host'
-    restart: unless-stopped
-
   dufs:
     volumes:
       - ./dufs/config.yaml:/config
