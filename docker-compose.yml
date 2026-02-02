@@ -344,6 +344,7 @@ services:
       - "/mnt/media2/Bengali Movies:/media/bengali"
       - "/mnt/media2/South Indian Movies:/media/south_indian"
       - "/mnt/media2/Religious Videos:/media/religious"
+      - "/mnt/books/tundru:/media/tundru"
 
 volumes:
   netalertx_data:
