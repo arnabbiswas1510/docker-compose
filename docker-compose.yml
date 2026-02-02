@@ -1,4 +1,5 @@
---- services:
+---
+services:
   plex:
     image: ghcr.io/linuxserver/plex
     container_name: plex
@@ -404,4 +405,3 @@ networks:
     driver: bridge
   welthwest_network:
     driver: bridge
-
