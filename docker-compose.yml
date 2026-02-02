@@ -371,7 +371,6 @@
       - PGID=1000
       - TZ=Etc/UTC # Set your timezone, e.g., America/New_York
 
-services:
   filebot:
     container_name: filebot-ui
     image: rednoah/filebot:node
