@@ -118,7 +118,7 @@ services:
       - "8989:8989" # Sonarr
       - "7575:7575" # Homarr
       - "6969:6969" # Whisparr
-      - "8080:8080" # SABnzbd WebUI (Added)
+      - "8181:8080" # SABnzbd WebUI (Added)
     init: true
     restart: unless-stopped
     networks:
