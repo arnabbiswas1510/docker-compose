@@ -104,19 +104,22 @@ services:
       - /dev/net/tun:/dev/net/tun
     environment:
       - VPN_SERVICE_PROVIDER=nordvpn
-      - VPN_TYPE=openvpn  # or "openvpn" if preferred
-      - SERVER_REGIONS=United_States  # Replace with your desired region
+      - VPN_TYPE=openvpn
+      - SERVER_REGIONS=United_States
       - OPENVPN_USER=nCjtiQ2SKGXTRJdta39z7WC7
       - OPENVPN_PASSWORD=Kd1MCNo6Wnaaus23T9pZ5a2w
+      # IMPORTANT: Allows you to access the Web UIs on your home network
+      - EXTRA_SUBNETS=192.168.1.0/24 
     ports:
-      - "8888:8888"  # qBittorrent WebUI (optional)
-      - "6881:6881"  # qBittorrent BT port (TCP)
-      - "6881:6881/udp"  # qBittorrent BT port (UDP)
-      - 7878:7878  # Radarr
-      - 8989:8989  # Sonarr
-      - 7575:7575  # Homarr
-      - 6969:6969  # Whisparr
-    init: true  # Ensures /dev/net/tun is available
+      - "8888:8888" # qBittorrent WebUI
+      - "6881:6881" # qBittorrent BT port (TCP)
+      - "6881:6881/udp" # qBittorrent BT port (UDP)
+      - "7878:7878" # Radarr
+      - "8989:8989" # Sonarr
+      - "7575:7575" # Homarr
+      - "6969:6969" # Whisparr
+      - "8080:8080" # SABnzbd WebUI (Added)
+    init: true
     restart: unless-stopped
     networks:
       - vpn_network
@@ -125,17 +128,39 @@ services:
     image: lscr.io/linuxserver/qbittorrent
     container_name: qbittorrent
     environment:
-      - WEBUI_PORT=8888  # Set custom WebUI port
+      - WEBUI_PORT=8888
       - PUID=1000
       - PGID=1000
-      - QBITTORRENT_INCOMPLETEDIR_ENABLED=true  # Enable incomplete dir
-      - QBITTORRENT_INCOMPLETEDIR=/downloads/incomplete  # Incomplete files dir
     network_mode: "service:gluetun"
     volumes:
       - ./qbittorrent/config:/config
       - ./qbittorrent/downloads:/downloads
-      - ./qbittorrent/config/search_plugins:/usr/share/qbittorrent/nova3/engines  # Nova3 path
-      - ./qbittorrent/watch:/watch   # Watch folder
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    network_mode: "service:gluetun" # Routes through VPN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./sabnzbd/config:/config
+      - ./qbittorrent/downloads:/downloads # IMPORTANT: Keep this shared with qbit for Whisparr
+    restart: unless-stopped
+
+  whisparr:
+    image: ghcr.io/thespad/whisparr:latest
+    container_name: whisparr
+    network_mode: "service:gluetun" # Routes through VPN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+    volumes:
+      - ./whisparr/config:/config
+      - ./qbittorrent/downloads:/downloads # Accesses finished files here
     restart: unless-stopped
 
   redis:
