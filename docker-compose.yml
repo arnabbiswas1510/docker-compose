@@ -205,18 +205,6 @@ services:
       - ./prowlarr/config:/config
     restart: unless-stopped
 
-  readarr:
-    image: cr.hotio.dev/hotio/readarr:latest
-    container_name: readarr
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1000
-      - PGID=1000
-    volumes:
-      - ./readarr/config:/config
-      - ./qbittorrent/downloads:/downloads
-    restart: unless-stopped
-
   lidarr:
     image: lscr.io/linuxserver/lidarr:latest
     container_name: lidarr
