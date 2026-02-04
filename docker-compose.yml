@@ -206,7 +206,7 @@ services:
     restart: unless-stopped
 
   readarr:
-    image: lscr.io/linuxserver/readarr:latest
+    image: cr.hotio.dev/hotio/readarr:latest
     container_name: readarr
     network_mode: "service:gluetun"
     environment:
