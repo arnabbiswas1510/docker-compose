@@ -359,9 +359,6 @@ services:
       - ibgateway_jts:/home/ibgateway/Jts
       - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
 
-volumes:
-  ibgateway_jts:
-
   netalertx:
     network_mode: host   # Use host networking for ARP scanning and other services
     image: ghcr.io/jokob-sk/netalertx:latest # Use the official repository address
