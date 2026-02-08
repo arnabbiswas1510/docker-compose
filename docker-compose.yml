@@ -333,12 +333,8 @@ services:
     image: ghcr.io/gnzsnz/ib-gateway:stable
     container_name: ib-gateway
     restart: always
-    security_opt:
-      - seccomp:unconfined
-    user: root  # Forces the container to have permissions to create the X11 socket
-    env_file:
-      - .env
     ports:
+      - "4001:4001"  #Live trading port
       - "4002:4002"  # API Port (Paper Trading default is 4002)
       - "5900:5900"  # VNC Port (To view the Gateway GUI)
     environment:
@@ -346,6 +342,13 @@ services:
       - DISPLAY=:1
       - X11VNC_ARGS=-noxdamage -nowf -nowcr -display :1 # Fixes the black screen
       - TIME_ZONE=America/New_York
+      - TWS_ACCEPT_INCOMING: accept
+      - READ_ONLY_API: no
+    volumes:
+      - ibgateway_jts:/home/ibgateway/Jts
+      - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
+    entrypoint: /bin/bash
+    command: -c "chmod +x /home/ibgateway/fix-trusted-ips-auto.sh && /home/ibgateway/fix-trusted-ips-auto.sh & exec /home/ibgateway/scripts/run.sh"
 
   netalertx:
     network_mode: host   # Use host networking for ARP scanning and other services
