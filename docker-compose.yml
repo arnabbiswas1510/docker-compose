@@ -342,8 +342,8 @@ services:
       - DISPLAY=:1
       - X11VNC_ARGS=-noxdamage -nowf -nowcr -display :1 # Fixes the black screen
       - TIME_ZONE=America/New_York
-      - TWS_ACCEPT_INCOMING: accept
-      - READ_ONLY_API: no
+      - TWS_ACCEPT_INCOMING=accept
+      - READ_ONLY_API=no
     volumes:
       - ibgateway_jts:/home/ibgateway/Jts
       - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
