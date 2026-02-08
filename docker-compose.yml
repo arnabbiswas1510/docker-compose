@@ -333,19 +333,34 @@ services:
     image: ghcr.io/gnzsnz/ib-gateway:stable
     container_name: ib-gateway
     restart: always
+    # Security options prevent "Sandbox" errors in the Java/X11 environment
     security_opt:
       - seccomp:unconfined
-    user: root  # Forces the container to have permissions to create the X11 socket
-    env_file:
-      - .env
     ports:
-      - "4002:4002"  # API Port (Paper Trading default is 4002)
-      - "5900:5900"  # VNC Port (To view the Gateway GUI)
+      - "4002:4002"  # Paper Trading API Port
+      - "5900:5900"  # VNC Port
     environment:
-      # Optional: set timezone to avoid sync issues
+      # --- REQUIRED TRADING CONFIG ---
+      - TRADING_MODE=paper
+      - TWS_USERID=pambi2478
+      - TWS_PASSWORD=Nuclear$$Senorita$$Kinsman0
+      - VNC_SERVER_PASSWORD=paro  # Must be set to enable VNC
+      
+      # --- API & GUI CONFIG ---
+      - TWS_ACCEPT_INCOMING=accept
+      - READ_ONLY_API=no
       - DISPLAY=:1
-      - X11VNC_ARGS=-noxdamage -nowf -nowcr -display :1 # Fixes the black screen
       - TIME_ZONE=America/New_York
+      
+      # --- CUSTOM SCRIPT HOOK ---
+      # Native way to run your script without breaking the entrypoint
+      - START_SCRIPTS=/home/ibgateway/fix-trusted-ips-auto.sh
+    volumes:
+      - ibgateway_jts:/home/ibgateway/Jts
+      - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
+
+volumes:
+  ibgateway_jts:
 
   netalertx:
     network_mode: host   # Use host networking for ARP scanning and other services
