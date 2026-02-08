@@ -344,6 +344,7 @@ services:
       - TIME_ZONE=America/New_York
       - TWS_ACCEPT_INCOMING=accept
       - READ_ONLY_API=no
+      - TRADING_MODE=paper  # Or "live" / "both"
     volumes:
       - ibgateway_jts:/home/ibgateway/Jts
       - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
