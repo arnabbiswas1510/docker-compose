@@ -355,7 +355,7 @@ services:
       # --- CUSTOM SCRIPT HOOK ---
       # Native way to run your script without breaking the entrypoint
       - START_SCRIPTS=/home/ibgateway/fix-trusted-ips-auto.sh
-    profiles: debug
+    profiles: [debug]
     volumes:
       - ibgateway_jts:/home/ibgateway/Jts
       - ./fix-trusted-ips-auto.sh:/home/ibgateway/fix-trusted-ips-auto.sh:ro
