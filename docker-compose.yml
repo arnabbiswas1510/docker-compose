@@ -432,24 +432,6 @@ services:
       - PGID=1000
       - TZ=Etc/UTC # Set your timezone, e.g., America/New_York
 
-  filebot:
-    container_name: filebot-ui
-    image: rednoah/filebot:node
-    restart: unless-stopped
-    ports:
-      - "5452:5452"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - FILEBOT_NODE_HTTP_PORT=5452
-    volumes:
-      - "./filebot_data:/data"
-      # Map your host folders to unique internal names
-      - "/mnt/media2/Bengali Movies:/media/bengali"
-      - "/mnt/media2/South Indian Movies:/media/south_indian"
-      - "/mnt/media2/Religious Videos:/media/religious"
-      - "/mnt/books/tundru:/media/tundru"
-
 volumes:
   netalertx_data:
   seafile-db:
