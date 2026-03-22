@@ -49,7 +49,7 @@ services:
     restart: unless-stopped
 
   grimmory:
-    image: ghcr.io/grimmory/grimmory:latest
+    image: ghcr.io/grimmory-tools/grimmory:latest
     container_name: grimmory
     restart: unless-stopped
     ports:
