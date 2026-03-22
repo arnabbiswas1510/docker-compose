@@ -48,6 +48,24 @@ services:
       - 25600:25600
     restart: unless-stopped
 
+version: '3.8'
+
+  grimmory:
+    image: ghcr.io/grimmory/grimmory:latest
+    container_name: grimmory
+    restart: unless-stopped
+    ports:
+      - "5173:5173" # You can change the host port if needed
+    environment:
+      - PORT=5173
+      - PUBLIC_HTTPS_ONLY=false
+      - PUBLIC_SIGNUP_DISABLED=false
+      - LOG_LEVEL=info
+    volumes:
+      - ./data:/grimmory/data
+      - ./books:/mnt/books
+      - ./bookdrop:/grimmory/bookdrop
+
   code-server: 
     image: lscr.io/linuxserver/code-server:latest
     container_name: code-server
