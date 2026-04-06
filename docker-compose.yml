@@ -101,6 +101,19 @@ services:
     # REMOVE '/projects' FROM HERE:
     command: serve --port 4096 --hostname 0.0.0.0 --cors "*"
 
+  webdav:
+    image: bytemark/webdav
+    container_name: obsidian-webdav
+    restart: unless-stopped
+    ports:
+      - "8082:80"  # We map internal port 80 to host port 8080
+    environment:
+      - AUTH_TYPE=Digest
+      - USERNAME=pom
+      - PASSWORD=paro  # Change this!
+    volumes:
+      - /home/dietpi/obsidian:/var/lib/dav/data
+
   watchtower:
       image: containrrr/watchtower
       container_name: watchtower
