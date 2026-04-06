@@ -95,7 +95,8 @@ services:
       - "./config/opencode/config:/root/.config/opencode"
       - "./config/opencode/opencode-data:/root/.local/share/opencode"
       - "./config/opencode:/workspace"
-      - "/home/dietpi/obsidian:/projects"
+      - "/home/dietpi/obsidian:/projects/obsidian"
+      - "/home/dietpi/docker:/projects/docker"
     # SET THIS TO YOUR VAULT PATH:
     working_dir: /projects
     # REMOVE '/projects' FROM HERE:
