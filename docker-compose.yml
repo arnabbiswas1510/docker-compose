@@ -2,7 +2,7 @@
 include:
   - ./puter/docker-compose.yml
   - ./trading/docker-compose.yml
-
+    
 services:
   plex:
     image: ghcr.io/linuxserver/plex
@@ -461,19 +461,6 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC # Set your timezone, e.g., America/New_York
-
-  couchdb:
-    image: couchdb:3.3.3
-    container_name: couchdb-obsidian
-    restart: always
-    environment:
-      - COUCHDB_USER=admin
-      - COUCHDB_PASSWORD=paro # Change this!
-    ports:
-      - "5984:5984"
-    volumes:
-      - ./config/couchdb/data:/opt/couchdb/data
-      - ./config/couchdb/etc/local.ini:/opt/couchdb/etc/local.ini # Map for persistent config
 
 volumes:
   netalertx_data:
