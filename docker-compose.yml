@@ -1,7 +1,7 @@
 ---
 include:
   - ./puter/docker-compose.yml
-#  - ./trading/docker-compose.yml
+  - ./trading/docker-compose.yml
          
 services:
   plex:
