@@ -111,7 +111,8 @@ services:
     environment:
       - AUTH_TYPE=Digest
       - USERNAME=pom
-      - PASSWORD=paro  # Change this!
+      - PASSWORD=paro
+      - EXCLUDE=
     volumes:
       - /home/dietpi/obsidian:/var/lib/dav/data
 
