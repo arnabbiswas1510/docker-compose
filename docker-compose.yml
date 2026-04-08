@@ -90,6 +90,8 @@ services:
     ports:
       - "4096:4096"
     environment:
+      - GARMIN_EMAIL=${GARMIN_EMAIL}
+      - GARMIN_PASSWORD=${GARMIN_PASSWORD}
       - OPENROUTER_API_KEY=${MY_OPENROUTER_KEY}
     volumes:
       - "./config/opencode/config:/root/.config/opencode"
