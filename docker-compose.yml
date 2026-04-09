@@ -84,7 +84,6 @@ services:
     restart: unless-stopped
 
   opencode-ai:
-    # Build from the subfolder
     build: 
       context: ./opencode
       dockerfile: Dockerfile
@@ -93,13 +92,9 @@ services:
     ports:
       - "4096:4096"
     environment:
-      - GARMIN_EMAIL=${GARMIN_EMAIL}
-      - GARMIN_PASSWORD=${GARMIN_PASSWORD}
       - OPENROUTER_API_KEY=${MY_OPENROUTER_KEY}
     volumes:
-      # Map the config folder from the subfolder to the container
       - "./opencode/config:/root/.config/opencode"
-      # Other data folders (adjust paths as needed)
       - "./opencode/opencode-data:/root/.local/share/opencode"
       - "./opencode:/workspace"
       - "/home/dietpi/docker:/projects/docker"
