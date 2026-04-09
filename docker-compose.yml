@@ -87,6 +87,12 @@ services:
     image: ghcr.io/anomalyco/opencode:latest
     container_name: opencode-ai
     restart: unless-stopped
+    # 1. Override the entrypoint to use a shell
+    entrypoint: ["/bin/sh", "-c"]
+    # 2. Run your install and then call the binary directly
+    command: >
+      "apk add --no-cache nodejs npm && 
+      opencode serve --port 4096 --hostname 0.0.0.0 --cors '*'"
     ports:
       - "4096:4096"
     environment:
@@ -99,7 +105,6 @@ services:
       - "./config/opencode:/workspace"
       - "/home/dietpi/docker:/projects/docker"
     working_dir: /projects
-    command: ["sh", "-c", "apk add --no-cache nodejs npm && serve --port 4096 --hostname 0.0.0.0 --cors '*'"]
 
   webdav:
     image: bytemark/webdav
