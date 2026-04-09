@@ -84,28 +84,27 @@ services:
     restart: unless-stopped
 
   opencode-ai:
-    image: ghcr.io/anomalyco/opencode:latest
+    # Build from the subfolder
+    build: 
+      context: ./opencode
+      dockerfile: Dockerfile
     container_name: opencode-ai
     restart: unless-stopped
-    # Use entrypoint to allow the shell script to run
-    entrypoint: ["/bin/sh", "-c"]
-    # We must call 'opencode serve' specifically because we bypassed the entrypoint
-    command: >
-      sh -c "apk add --no-cache nodejs npm && 
-      opencode serve --port 4096 --hostname 0.0.0.0 --cors '*'"
+    ports:
+      - "4096:4096"
     environment:
-      - OPENCODE_SERVER_PASSWORD=your_password_here
       - GARMIN_EMAIL=${GARMIN_EMAIL}
       - GARMIN_PASSWORD=${GARMIN_PASSWORD}
       - OPENROUTER_API_KEY=${MY_OPENROUTER_KEY}
     volumes:
-      - "./config/opencode/config:/root/.config/opencode"
-      - "./config/opencode/opencode-data:/root/.local/share/opencode"
-      - "./config/opencode:/workspace"
+      # Map the config folder from the subfolder to the container
+      - "./opencode/config:/root/.config/opencode"
+      # Other data folders (adjust paths as needed)
+      - "./opencode/opencode-data:/root/.local/share/opencode"
+      - "./opencode:/workspace"
       - "/home/dietpi/docker:/projects/docker"
-    ports:
-      - "4096:4096"
     working_dir: /projects
+    command: serve --port 4096 --hostname 0.0.0.0 --cors "*"
 
   webdav:
     image: bytemark/webdav
