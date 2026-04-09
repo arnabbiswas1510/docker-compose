@@ -93,8 +93,6 @@ services:
       - "4096:4096"
     environment:
       - OPENROUTER_API_KEY=${MY_OPENROUTER_KEY}
-      - GARMIN_EMAIL=${GARMIN_EMAIL:-arnabbiswas@yahoo.com}
-      - GARMIN_PASSWORD=${GARMIN_PASSWORD}
     volumes:
       - "./opencode/config:/root/.config/opencode"
       - "./opencode/opencode-data:/root/.local/share/opencode"
