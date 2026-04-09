@@ -98,10 +98,8 @@ services:
       - "./config/opencode/opencode-data:/root/.local/share/opencode"
       - "./config/opencode:/workspace"
       - "/home/dietpi/docker:/projects/docker"
-    # SET THIS TO YOUR VAULT PATH:
     working_dir: /projects
-    # REMOVE '/projects' FROM HERE:
-    command: serve --port 4096 --hostname 0.0.0.0 --cors "*"
+    command: ["sh", "-c", "apk add --no-cache nodejs npm && serve --port 4096 --hostname 0.0.0.0 --cors '*'"]
 
   webdav:
     image: bytemark/webdav
