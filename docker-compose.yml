@@ -2,6 +2,7 @@
 include:
   - ./puter/docker-compose.yml
   - ./trading/docker-compose.yml
+  - ./garmin-grafana/docker-compose.yml
          
 services:
   plex:
