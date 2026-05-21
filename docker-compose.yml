@@ -1,7 +1,7 @@
 ---
 include:
   - ./puter/docker-compose.yml
-  - ./logseq_sync_server/docker-compose.yml
+  #- ./logseq_sync_server/docker-compose.yml
   #- ./trading/docker-compose.yml
   - ./garmin-grafana/compose.yml
          
