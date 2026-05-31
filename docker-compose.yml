@@ -3,7 +3,7 @@ include:
   - ./puter/docker-compose.yml
   #- ./logseq_sync_server/docker-compose.yml
   #- ./trading/docker-compose.yml
-  #- ./garmin-grafana/compose.yml
+  - ./garmin-ai-coach/docker-compose.yml
          
 services:
   plex:
