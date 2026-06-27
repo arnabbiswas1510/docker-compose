@@ -269,6 +269,16 @@ volumes:
   netdata-cache:
   netdata-lib:
   model-cache:
+  dawarich_db_data:
+    name: dawarich_dawarich_db_data
+  dawarich_public:
+    name: dawarich_dawarich_public
+  dawarich_shared:
+    name: dawarich_dawarich_shared
+  dawarich_storage:
+    name: dawarich_dawarich_storage
+  dawarich_watched:
+    name: dawarich_dawarich_watched
 
 networks:
   seafile-net:
