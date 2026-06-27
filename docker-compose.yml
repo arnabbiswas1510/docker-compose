@@ -1,4 +1,8 @@
 ---
+include:
+  - path: ./dawarich/docker-compose.yml
+  - path: ./omnivore/docker-compose.yml
+
 services:
   test-service:
     image: alpine
@@ -83,6 +87,10 @@ services:
       environment:
           - TZ=US/Eastern
           - WATCHTOWER_SCHEDULE= 0 0 03 * * ? #At 03:00 AM everyday
+          - DOCKER_API_VERSION=1.40
+          - WATCHTOWER_CLEANUP=true
+          - WATCHTOWER_INCLUDE_STOPPED=true
+          - WATCHTOWER_REVIVE_STOPPED=false
       restart: unless-stopped
 
   minidlna:
@@ -239,6 +247,13 @@ services:
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
     volumes:
       - ./n8n_data:/home/dietpi/docker/config/n8n/data
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
 
 volumes:
   seafile-db:
