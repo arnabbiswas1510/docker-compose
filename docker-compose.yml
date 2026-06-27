@@ -2,6 +2,8 @@
 include:
   - path: ./dawarich/docker-compose.yml
   - path: ./omnivore/docker-compose.yml
+  - path: ./ai-trading-bot/docker-compose.yml
+  - path: ./garmin-ai-coach/docker-compose.yml
 
 services:
   test-service:
