@@ -327,7 +327,7 @@ services:
 
   database:
     container_name: immich_postgres
-    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:739cdd626151ff1f796dc95a6591b55a714f341c737e27f045019ceabf8e8c52
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0
     ports:
       - "5432:5432"
     environment:
@@ -344,8 +344,6 @@ services:
       interval: 5m
       start_interval: 30s
       start_period: 5m
-    command: >-
-      postgres -c shared_preload_libraries=vectors.so -c 'search_path="$$user", public, vectors' -c logging_collector=on -c max_wal_size=2GB -c shared_buffers=512MB -c wal_compression=on
     restart: always
 
   n8n:
@@ -381,9 +379,9 @@ services:
     ports:
       - '8998:80' 
 
-  ib-gateway:
+  ib-gateway-debug:
     image: ghcr.io/gnzsnz/ib-gateway:stable
-    container_name: ib-gateway
+    container_name: ib-gateway-debug
     restart: always
     # Security options prevent "Sandbox" errors in the Java/X11 environment
     security_opt:
