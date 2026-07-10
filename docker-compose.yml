@@ -472,7 +472,7 @@ services:
       - "1900:1900/udp" # For Emby mobile apps auto discovery
     volumes:
       - ./config/emby/config:/config
-      - /mnt/books/tundru:/mnt/movies:ro
+      - /mnt/books:/mnt/books:ro,rslave
       #- /path/to/your/media/tvshows:/mnt/tvshows:ro
       # Add more volumes for music, photos, etc.
     environment:
