@@ -8,7 +8,7 @@ services:
   test-service:
     image: alpine
     environment:
-      - UPDATED=2025_TEST_2
+      - UPDATED=2026-07-14_TEST_3
   plex:
     image: ghcr.io/linuxserver/plex
     container_name: plex
