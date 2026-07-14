@@ -1,0 +1,52 @@
+# ---------------------------------------------------------
+# Ignore everything by default
+# ---------------------------------------------------------
+*
+!.gitignore
+
+# ---------------------------------------------------------
+# Allow directories to be traversed so Git can find files
+# ---------------------------------------------------------
+!*/
+
+# ---------------------------------------------------------
+# Exclude heavy data, config, and media directories entirely
+# to optimize performance and prevent accidental commits
+# ---------------------------------------------------------
+/config/
+/Plex/
+/qbittorrent/downloads/
+/qbittorrent/watch/
+/logseq_sync_server/sync_data/
+/n8n_data/
+**/node_modules/
+**/.git/
+
+# ---------------------------------------------------------
+# Unignore Docker Compose files
+# ---------------------------------------------------------
+!**/docker-compose.yml
+!**/docker-compose.yaml
+!**/docker-compose*.yml
+!**/docker-compose*.yaml
+
+# ---------------------------------------------------------
+# Unignore Environment files
+# ---------------------------------------------------------
+!**/.env
+!**/.env.*
+
+# ---------------------------------------------------------
+# Unignore Dockerfiles and build specifications
+# ---------------------------------------------------------
+!**/Dockerfile
+!**/dockerfile
+!**/Dockerfile.*
+!**/.dockerignore
+
+# ---------------------------------------------------------
+# Unignore tooling and files required for building images
+# ---------------------------------------------------------
+!**/mise.toml
+!**/UPSTREAM_DB_SYNC_REF
+!**/*.sh
