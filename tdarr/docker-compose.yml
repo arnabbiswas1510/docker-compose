@@ -20,6 +20,7 @@ services:
       - ./server/configs:/app/configs
       - ./server/logs:/app/logs
       - ./transcode:/temp
+      - /mnt:/mnt
       - /mnt/media1:/media1
       - /mnt/media2:/media2
       - /mnt/tvShows:/tvShows
@@ -41,6 +42,7 @@ services:
       - ./node/configs:/app/configs
       - ./node/logs:/app/logs
       - ./transcode:/temp
+      - /mnt:/mnt
       - /mnt/media1:/media1
       - /mnt/media2:/media2
       - /mnt/tvShows:/tvShows
