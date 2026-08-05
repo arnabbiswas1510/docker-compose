@@ -58,6 +58,40 @@ services:
       - 25600:25600
     restart: unless-stopped
 
+  booklore-db:
+    image: mariadb:11
+    container_name: booklore-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=booklore_password
+      - MYSQL_DATABASE=booklore
+      - MYSQL_USER=booklore
+      - MYSQL_PASSWORD=booklore_password
+    volumes:
+      - ./config/booklore-db:/var/lib/mysql
+    restart: unless-stopped
+
+  booklore:
+    image: ghcr.io/booklore-app/booklore:latest
+    container_name: booklore
+    ports:
+      - "6060:6060"
+    environment:
+      - USER_ID=1000
+      - GROUP_ID=1000
+      - TZ=America/New_York
+      - DB_HOST=booklore-db
+      - DATABASE_NAME=booklore
+      - DATABASE_USERNAME=booklore
+      - DATABASE_PASSWORD=booklore_password
+    volumes:
+      - ./config/booklore:/app/data
+      - ./config/bookdrop:/bookdrop
+      - /mnt/books:/data
+      - /mnt/books:/books
+    depends_on:
+      - booklore-db
+    restart: unless-stopped
+
   code-server: 
     image: lscr.io/linuxserver/code-server:latest
     container_name: code-server
