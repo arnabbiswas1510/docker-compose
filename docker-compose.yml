@@ -495,6 +495,8 @@ services:
       - ./config/jellyfin/config:/config
       - ./config/jellyfin/cache:/cache
       - /mnt/books/tundru:/mnt/movies:ro
+    devices:
+      - /dev/dri:/dev/dri
     environment:
       - PUID=1000
       - PGID=1000
